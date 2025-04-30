@@ -5,7 +5,7 @@ namespace ONT3001_Assignement_1.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions options) : base(options) 
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) 
         {
         
         }
