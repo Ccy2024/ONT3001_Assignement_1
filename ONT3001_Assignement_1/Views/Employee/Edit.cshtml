@@ -1,0 +1,112 @@
+﻿@model ONT3001_Assignement_1.Models.Employee
+
+@{
+    ViewData["Title"] = "Edit Employee";
+}
+
+<h1 class="text-black">Edit Employee</h1>
+
+<div>
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="EmployeeID" /> @* Hidden field for EmployeeID *@
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div> 
+
+        <div class="form-group">
+            <label asp-for="FirstName" class="control-label">First Name</label>
+            <input asp-for="FirstName" class="form-control" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LastName" class="control-label">Last Name</label>
+            <input asp-for="LastName" class="form-control" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Age" class="control-label">Age</label>
+            <input asp-for="Age" class="form-control" />
+            <span asp-validation-for="Age" class="text-danger"></span>
+        </div>
+
+
+        <div class="form-group">
+            <label asp-for="DepartmentID" class="control-label">Department</label>
+            
+            <select asp-for="DepartmentID" class="form-control" id="departmentDropdown">
+                <option value="">-- Select Department --</option> 
+                <option value="IT">Information Technology</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Human Resources">Human Resources</option>
+                <option value="Finance">Finance</option>
+                <option value="Other">Other</option> 
+            </select>
+            <span asp-validation-for="DepartmentID" class="text-danger"></span>
+        </div>
+
+        @* Input field for the "Other" department name - Initially hidden *@
+        <div class="form-group" id="otherDepartmentInputGroup" style="display: none;">
+            <label for="otherDepartmentName" class="control-label">Other Department Name</label>
+            @* This input will send its value with the name "otherDepartmentName" to the controller *@
+            <input type="text" name="otherDepartmentName" id="otherDepartmentName" class="form-control" />
+            @* Optional: Add validation for this field if needed *@
+            @* <span data-valmsg-for="otherDepartmentName" class="text-danger"></span> *@
+        </div>
+
+        <div class="form-group form-check">
+            <input class="form-check-input" asp-for="IsActive"  />
+            <label class="form-check-label" asp-for="IsActive"></label>
+        </div>
+
+        <div class="form-group button-group-spacing">
+            <button type="submit" class="btn btn-success">Update Employee</button>
+            <a asp-action="Index" class="btn btn-danger">Back</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .control-label,
+    .form-check-label {
+        font-weight: 500;
+    }
+
+    .form-group.form-check {
+        margin-top: 10px; 
+
+    }
+
+    
+    .control-label::after {
+        content: "*";
+        color: red; 
+        margin-left: 2px;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #c82333;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        margin-right:8px;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+    .button-group-spacing {
+        margin-top: 20px;
+    }
+
+</style>

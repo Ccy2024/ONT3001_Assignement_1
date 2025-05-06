@@ -20,3 +20,6 @@ html {
 body {
   margin-bottom: 60px;
 }
+.bg-custom-success {
+    background-color: #28a745 !important; /* Make sure this is correct */
+}

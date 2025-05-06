@@ -15,12 +15,11 @@ namespace ONT3001_Assignement_1.Controllers
             _context = context;
         }
 
-        // Retrieve all active employees including their departments
+        // Retrieve all  employees including their departments
         public async Task<IActionResult> Index()
         {
             var employees = await _context.Employees
                 .Include(e => e.Department)
-                .Where(e => e.IsActive) // Only fetch active employees
                 .ToListAsync();
             return View(employees); // Return the Index view associated with employees
         }
@@ -30,7 +29,7 @@ namespace ONT3001_Assignement_1.Controllers
         {
             var employees = await _context.Employees
                 .Include(e => e.Department)
-                .Where(e => e.IsActive && e.Department.Name.Contains(departmentName)) // Filter by active employees and department name
+                .Where(e =>  e.Department.Name.Contains(departmentName)) // Filter by department name
                 .ToListAsync();
 
             return View("Index", employees); 
@@ -41,7 +40,7 @@ namespace ONT3001_Assignement_1.Controllers
         {
             var employees = await _context.Employees
                 .Include(e => e.Department)
-                .Where(e => e.IsActive && e.Age > age) // Fetch employees who are over the specified age and are active
+                .Where(e => e.Age > age) // Fetch employees who are over the specified age 
                 .ToListAsync();
 
             return View("Index", employees); 

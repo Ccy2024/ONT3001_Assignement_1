@@ -15,7 +15,7 @@ namespace ONT3001_Assignement_1.Models
         public string LastName { get; set; }    
 
         public string FullName  => FirstName + " " + LastName;
-        [Range(1, 200, ErrorMessage = "Age must be between 1 and 120.")]
+        [Range(18, 65, ErrorMessage = "Age must be between 18 and 65.")]
         public int Age { get; set; }
         [ForeignKey("Department")]
         public int DepartmentID { get; set; }
