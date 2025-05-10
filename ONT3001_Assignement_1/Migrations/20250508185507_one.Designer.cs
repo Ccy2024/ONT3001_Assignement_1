@@ -11,8 +11,8 @@ using ONT3001_Assignement_1.Data;
 namespace ONT3001_Assignement_1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250505162853_1")]
-    partial class _1
+    [Migration("20250508185507_one")]
+    partial class one
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

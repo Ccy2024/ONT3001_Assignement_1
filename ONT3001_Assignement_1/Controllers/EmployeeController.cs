@@ -19,32 +19,33 @@ namespace ONT3001_Assignement_1.Controllers
         public async Task<IActionResult> Index()
         {
             var employees = await _context.Employees
+                .Where(e => e.IsActive) 
                 .Include(e => e.Department)
                 .ToListAsync();
-            return View(employees); // Return the Index view associated with employees
+            return View(employees);
         }
 
-        // Search employees by department name
-        public async Task<IActionResult> Search(string departmentName)
+        public async Task<IActionResult> Search(string departmentName, int? minAge) // Accept both parameters
         {
-            var employees = await _context.Employees
-                .Include(e => e.Department)
-                .Where(e =>  e.Department.Name.Contains(departmentName)) // Filter by department name
-                .ToListAsync();
+            var employees = _context.Employees.Where(e => e.IsActive).Include(e => e.Department).AsQueryable(); 
 
-            return View("Index", employees); 
+            // Apply department name filter if provided
+            if (!string.IsNullOrEmpty(departmentName))
+            {
+                employees = employees.Where(e => e.Department.Name.Contains(departmentName));
+            }
+
+            // Apply age filter if provided
+            if (minAge.HasValue)
+            {
+                employees = employees.Where(e => e.Age >= minAge.Value); 
+            }
+
+            var filteredEmployees = await employees.ToListAsync(); 
+
+            return View("Index", filteredEmployees);
         }
 
-        // Filter employees by age
-        public async Task<IActionResult> FilterByAge(int age)
-        {
-            var employees = await _context.Employees
-                .Include(e => e.Department)
-                .Where(e => e.Age > age) // Fetch employees who are over the specified age 
-                .ToListAsync();
-
-            return View("Index", employees); 
-        }
 
         // Get employee details by ID
         public async Task<IActionResult> Details(int? id)
@@ -54,17 +55,18 @@ namespace ONT3001_Assignement_1.Controllers
 
             var employee = await _context.Employees
                 .Include(e => e.Department)
-                .FirstOrDefaultAsync(e => e.EmployeeID == id && e.IsActive); 
+                .FirstOrDefaultAsync(e => e.EmployeeID == id ); 
             if (employee == null)
                 return NotFound();
 
             return View(employee);
         }
 
+
         // GET: Employee/Create
         public IActionResult Create()
         {
-            ViewBag.DepartmentsList = new SelectList(_context.Departments.ToList(), "DepartmentID", "DepartmentName");
+            ViewBag.DepartmentList = new SelectList(_context.Departments.ToList(), "DepartmentID", "Name");
             return View();
         }
 
@@ -73,19 +75,22 @@ namespace ONT3001_Assignement_1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Employee employee)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(employee); // IsActive is true by default
+                _context.Add(employee);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index)); // Redirect back to the employees index
+                return RedirectToAction(nameof(Index));
             }
-
-            // Repopulate dropdown if model is incorrect
-            ViewBag.DepartmentsList = new SelectList(_context.Departments.ToList(), "DepartmentID", "DepartmentName");
-            return View(employee); 
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
+            }
+            // Re-populate dropdown if model is invalid
+            ViewBag.DepartmentList = new SelectList(_context.Departments.ToList(), "DepartmentID", "Name", employee.DepartmentID);
+            return View(employee);
         }
 
-        // GET: Employee/Edit
+        // GET: Employee/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -95,68 +100,78 @@ namespace ONT3001_Assignement_1.Controllers
             if (employee == null || !employee.IsActive)
                 return NotFound();
 
-            ViewBag.DepartmentsList = new SelectList(_context.Departments, "DepartmentID", "DepartmentName", employee.DepartmentID);
+            // Make sure this line exists and is executed
+            ViewBag.DepartmentList = new SelectList(_context.Departments, "DepartmentID", "Name", employee.DepartmentID);
+
             return View(employee);
         }
 
-        // POST: Employee/Edit
+        // POST: Employee/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Employee employee)
+        public async Task<IActionResult> Edit(int id, Employee updatedEmployee)
         {
-            if (id != employee.EmployeeID)
+            if (id != updatedEmployee.EmployeeID)
                 return NotFound();
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(employee);
+                    var existingEmployee = await _context.Employees.FindAsync(id);
+                    if (existingEmployee == null || !existingEmployee.IsActive)
+                        return NotFound();
+
                     await _context.SaveChangesAsync();
+
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_context.Employees.Any(e => e.EmployeeID == id))
+                    if (!_context.Employees.Any(e => e.EmployeeID == id && e.IsActive))
                         return NotFound();
                     else
-                        throw; // Rethrows the exception for further handling
+                        throw;
                 }
             }
 
-            ViewBag.DepartmentsList = new SelectList(_context.Departments, "DepartmentID", "DepartmentName", employee.DepartmentID);
-            return View(employee);
+            ViewBag.DepartmentList = new SelectList(_context.Departments.ToList(), "DepartmentID", "Name", updatedEmployee.DepartmentID);
+            return View(updatedEmployee);
         }
 
-        // GET: Employee/Delete (Soft Delete)
+
+        // GET: Employee/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
                 return NotFound();
 
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.EmployeeID == id && e.IsActive);
+            var employee = await _context.Employees
+                .Include(e => e.Department)
+                .FirstOrDefaultAsync(e => e.EmployeeID == id && e.IsActive);
+
             if (employee == null)
                 return NotFound();
 
             return View(employee);
         }
 
-        // POST: Employee/DeleteConfirmed (Soft Delete)
-        [HttpPost, ActionName("Delete")]
+        // POST: Employee/DeleteConfirmed
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int EmployeeID)
         {
-            var employee = await _context.Employees.FindAsync(id);
+            var employee = await _context.Employees.FindAsync(EmployeeID);
             if (employee != null)
             {
-                employee.IsActive = false; // Is active is set to false
+                employee.IsActive = false; // Soft delete
                 _context.Update(employee);
                 await _context.SaveChangesAsync();
             }
-
             return RedirectToAction(nameof(Index));
         }
     }
-
 }
+
+
 
