@@ -114,25 +114,38 @@ namespace ONT3001_Assignement_1.Controllers
             if (id != updatedEmployee.EmployeeID)
                 return NotFound();
 
-            if (ModelState.IsValid)
+            //if (ModelState.IsValid)
+            //{
+            //    try
+            //    {
+            //        var existingEmployee = await _context.Employees.FindAsync(id);
+            //        if (existingEmployee == null || !existingEmployee.IsActive)
+            //            return NotFound();
+
+            //        await _context.SaveChangesAsync();
+
+            //        return RedirectToAction(nameof(Index));
+            //    }
+            //    catch (DbUpdateConcurrencyException)
+            //    {
+            //        if (!_context.Employees.Any(e => e.EmployeeID == id && e.IsActive))
+            //            return NotFound();
+            //        else
+            //            throw;
+            //    }
+            //}
+            try
             {
-                try
-                {
-                    var existingEmployee = await _context.Employees.FindAsync(id);
-                    if (existingEmployee == null || !existingEmployee.IsActive)
-                        return NotFound();
-
-                    await _context.SaveChangesAsync();
-
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.Employees.Any(e => e.EmployeeID == id && e.IsActive))
-                        return NotFound();
-                    else
-                        throw;
-                }
+                _context.Update(updatedEmployee);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));   
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Employees.Any(e => e.EmployeeID == id))
+                    return NotFound();
+                else
+                    throw;
             }
 
             ViewBag.DepartmentList = new SelectList(_context.Departments.ToList(), "DepartmentID", "Name", updatedEmployee.DepartmentID);
